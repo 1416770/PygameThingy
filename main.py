@@ -1,4 +1,5 @@
 import pygame
+import os
 from classes.player import Player
 
 pygame.init()
@@ -10,9 +11,16 @@ font = pygame.font.Font(None, 32)
 player1 = Player("Blue", [pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_1], 1, screen)
 player2 = Player("Red", [pygame.K_UP, pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT, pygame.K_KP1], 2, screen)
 
+background_image = pygame.image.load(os.path.join("resources", "background.png")).convert_alpha()
+background_image = pygame.transform.scale(background_image, (screen.get_width(), screen.get_height()))
+background_rect = background_image.get_rect()
+
+pygame.display.set_icon(background_image)
+pygame.display.set_caption("ummmm pygame shooter thingy yeah")
+
 projectiles = []
 
-def handle_player_input():
+def update_players(): # Handles player input and character movement.
     keys_pressed = pygame.key.get_pressed()
 
     for player in [player1, player2]:
@@ -45,6 +53,27 @@ def handle_player_input():
         
         player.draw()
 
+def update_scores(): # Renders the player scores.
+    player1_score_text = font.render(f"Player 1 score: {player1.score}", True, (0, 0, 255))
+    player1_score_rectangle = player1_score_text.get_rect()
+    screen.blit(player1_score_text, player1_score_rectangle)
+
+    player2_score_text = font.render(f"Player 2 score: {player2.score}", True, (255, 0, 0))
+    player2_score_rectangle = player2_score_text.get_rect()
+    player2_score_rectangle.left = screen.get_width() - player2_score_rectangle.width
+    screen.blit(player2_score_text, player2_score_rectangle)
+
+    if player1.score >= 100:
+        
+        pass
+    elif player2.score >= 100:
+        pass
+
+def update_projectiles(): # Draws, checks for hits and removes projectiles.
+    for projectile in projectiles:
+        if not projectile.draw(delta_time) or projectile.check_for_hits([player1, player2]):
+            projectiles.remove(projectile)
+
 delta_time = 0
 running = True
 while running:
@@ -52,22 +81,11 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    screen.fill("black")
+    screen.blit(background_image, background_rect)
 
-    player1_score_text = font.render(f"Player 1 score: {player1.score}", True, (255, 255, 255))
-    player1_score_rectangle = player1_score_text.get_rect()
-    screen.blit(player1_score_text, player1_score_rectangle)
-
-    player2_score_text = font.render(f"Player 2 score: {player2.score}", True, (255, 255, 255))
-    player2_score_rectangle = player2_score_text.get_rect()
-    player2_score_rectangle.left = screen.get_width() - player2_score_rectangle.width
-    screen.blit(player2_score_text, player2_score_rectangle)
-
-    for projectile in projectiles:
-        if not projectile.draw(delta_time) or projectile.check_for_hits([player1, player2]):
-            projectiles.remove(projectile)
-
-    handle_player_input()
+    update_scores()
+    update_projectiles()
+    update_players()
 
     pygame.display.flip()
     delta_time = clock.tick(60) / 1000
