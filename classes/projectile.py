@@ -2,7 +2,7 @@ import pygame
 import os
 
 class Projectile:
-    speed = 600
+    speed = 800
     surface: pygame.Surface
     rect: pygame.Rect
     image: pygame.image

@@ -1,12 +1,14 @@
 import pygame
 import os
 from classes.player import Player
+from threading import Timer
 
 pygame.init()
 
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 font = pygame.font.Font(None, 32)
+winning_score = 5
 
 player1 = Player("Blue", [pygame.K_w, pygame.K_a, pygame.K_s, pygame.K_d, pygame.K_1], 1, screen)
 player2 = Player("Red", [pygame.K_UP, pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT, pygame.K_KP1], 2, screen)
@@ -19,6 +21,13 @@ pygame.display.set_icon(background_image)
 pygame.display.set_caption("ummmm pygame shooter thingy yeah")
 
 projectiles = []
+
+restarting = False
+def restart():
+    player1.score = 0
+    player2.score = 0
+    restarting = False
+restart_timer = Timer(5, restart)
 
 def update_players(): # Handles player input and character movement.
     keys_pressed = pygame.key.get_pressed()
@@ -53,7 +62,7 @@ def update_players(): # Handles player input and character movement.
         
         player.draw()
 
-def update_scores(): # Renders the player scores.
+def update_scores(): # Renders the player scores and handles winning.
     player1_score_text = font.render(f"Player 1 score: {player1.score}", True, (0, 0, 255))
     player1_score_rectangle = player1_score_text.get_rect()
     screen.blit(player1_score_text, player1_score_rectangle)
@@ -63,11 +72,21 @@ def update_scores(): # Renders the player scores.
     player2_score_rectangle.left = screen.get_width() - player2_score_rectangle.width
     screen.blit(player2_score_text, player2_score_rectangle)
 
-    if player1.score >= 100:
-        
-        pass
-    elif player2.score >= 100:
-        pass
+    winner = None
+    if player1.score >= winning_score:
+        winner = "Player 1"
+    elif player2.score >= winning_score:
+        winner = "Player 2"
+    if winner:
+        winner_text = font.render(f"{winner} wins. They reached {winning_score}+ score!", True, (255, 255, 255))
+        winner_rectangle = winner_text.get_rect()
+        winner_rectangle.left = (screen.get_width() / 2) - (winner_rectangle.width / 2)
+        screen.blit(winner_text, winner_rectangle)
+
+        if not restarting:
+            restarting = True
+            restart_timer.start()
+
 
 def update_projectiles(): # Draws, checks for hits and removes projectiles.
     for projectile in projectiles:
